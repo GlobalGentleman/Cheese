@@ -1,0 +1,226 @@
+// gameScreen 0 on alku screen 1 on peli screen ja 2 on game over screen
+import lord_of_galaxy.timing_utils.*;
+import g4p_controls.*;
+int gameScreen = 0;
+int score = 0;
+boolean hit;
+float circleX;
+float circleY;
+float haloX;
+float haloY;
+float haloD = 50;
+int circleD = 0;
+int time;
+int dtime;
+int hp;
+Stopwatch s;
+PImage cursor;
+GButton startButton;
+GButton retryButton;
+boolean nopeutus;
+int jarp = 10;
+//highscore juttuja
+int hscore;
+String hscores;
+String[] strArray;
+final String gameFolder = "GGBalls2/";
+final String scorefile = "scores.txt";
+
+final String appData = System.getenv("AppData") + '/';
+final String highscorePath = appData + gameFolder + scorefile;
+
+
+
+PrintWriter highscore;
+
+File scores = dataFile(highscorePath);
+boolean exist = scores.exists();
+String filePath = scores.getPath();
+
+
+//setup block
+void setup() {
+  String[] strArray = loadStrings(highscorePath);
+  hscores = join(strArray, ' ');
+  //print(filePath);
+  print(appData + gameFolder + scorefile);
+  size(500, 500);
+  s = new Stopwatch(this);
+ // cursor = loadImage("rotmg.png");
+  //cursor(cursor);
+  startButton = new GButton(this, height/2-70, width/2+5, 140, 20, "Start geim"  );
+  retryButton = new GButton(this, height/2-70, width/2+50, 140, 20, "Retry"  );
+  retryButton.setVisible(false);
+  //highscorej
+  score = 0;
+  if (exist)
+  {
+    //ei mitään
+    print("löytyy");
+  } else {
+    print("tehrää uus");
+    createOutput(highscorePath);
+    
+   highscore = createWriter(highscorePath);
+    highscore.println("0");
+    highscore.flush();
+    highscore.close();
+
+}
+  gameScreen=0;
+}
+
+// piirrä block
+
+void draw() {
+  if (gameScreen == 0) {
+    initScreen();
+  } else if (gameScreen == 1) {
+    gameScreen();
+  } else if (gameScreen == 2) 
+  {
+    gameOverScreen();
+  }
+}
+//1 versio napista
+public void handleButtonEvents(GButton button, GEvent event) {
+  if (button == startButton && event == GEvent.CLICKED) {
+    startGame();
+    s.restart();
+    circleD = 40;
+    startButton.setVisible(false);
+  }  
+  if (button == retryButton && event == GEvent.CLICKED) {
+    retryButton.setVisible(false);
+    setup();
+  }
+}
+void initScreen()
+{
+  background(0);
+  textAlign(CENTER);
+  text("Click to", height/2, width/2);
+  text("Highscore is " + hscores, height/2, width/2+100);
+  text("Paina Z tai X pallojen sisällä saadaksesi pisteitä", height/2, width/2-60);
+  text("Jos palloa lähestyvä kehä osuu pallon ulkoreunaan häviät pelin", height/2, width/2-40);
+  text("Jos painat ohi menetät 1 hp:n, jos hp putoaa nollaan häviät pelin", height/2, width/2-20);
+
+  dtime = 1500;
+  hp = 3;
+}
+
+
+
+void gameOverScreen()
+{
+  circleD=0;
+  background(128, 23, 23);
+  textAlign(CENTER);
+  text("Game Over", height/2, width/2);
+  text("Click to Retry!", height/2, (width/2)+15);
+  text("Your score was", height/2, (width/2)+30);
+  text(score, height/2, (width/2)+45);
+  String[] strArray = loadStrings(filePath);
+  hscores = join(strArray, "");
+  String scored = Integer.toString(score);
+  hscore = Integer.parseInt(hscores);
+  if (score < hscore)
+  {
+    //ei mitään
+  } else {
+    String[] list = split(scored, ' ');
+    saveStrings(highscorePath, list);
+  }
+}
+/*
+public void mousePressed()
+ {
+ if (gameScreen==0)
+ {
+ startGame();
+ s.start();
+ }
+ }
+ */
+void startGame()
+{
+  gameScreen=1;
+}
+
+
+void gameScreen()
+{
+
+  background(75, 83, 32); 
+  textAlign(RIGHT, TOP);
+  text(score, height, 0);
+  text(s.time(), height, 20);
+  text(hp, 10, 10);
+  haloD = 40+(dtime/20-s.time()/20);
+  pushStyle();
+  noFill();
+  circle(haloX, haloY, haloD);  
+  popStyle();
+  pushStyle();
+  circle(circleX, circleY, circleD);
+  fill(255);
+  popStyle();
+
+  if (score % jarp == 0 && score > 0)
+  {
+    dtime = dtime - 200;
+    jarp = jarp + 10;
+  }
+
+  if (s.time() > dtime)
+  {
+    gameOverScreen(); 
+    retryButton.setVisible(true);
+  }
+  if (hp<1)
+  {
+    gameOverScreen();
+  }
+}
+
+//Painamisjuttu
+void keyPressed()
+{
+
+  if (key == 'z' || key == 'Z' || key == 'x' || key == 'X')
+  {
+    if (dist(mouseX, mouseY, circleX, circleY ) < circleD/2 )
+    {
+      score++;
+
+      drawBall();
+      //    timerReset();
+      s.restart();
+      //hit = true;
+    } else {
+      hp = hp-1;
+    }
+  }
+}
+
+void drawBall()
+{
+
+  {
+
+    circleX = (round(random(0, 500)));
+    circleY = (round(random(0, 500)));
+    haloX = circleX;
+    haloY = circleY;
+  }
+}
+
+
+
+//highscore
+
+
+//aika
+//leaderboard
+//kauppa vaik
+//
